@@ -1,0 +1,13 @@
+# SPDX-License-Identifier: MPL-2.0
+[package]
+name = "nightshift-helper"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "cosmic-nightshift-helper"
+path = "src/main.rs"
+
+[dependencies]
+nightshift-core.workspace = true

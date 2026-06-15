@@ -1,0 +1,25 @@
+// SPDX-License-Identifier: MPL-2.0
+//
+// Allows members of the "wheel" or "sudo" group to run the
+// cosmic-nightshift privileged helper via pkexec without re-entering
+// their password each time the tint changes.
+//
+// pkexec authorizes program launches through the generic
+// "org.freedesktop.policykit.exec" action; action.lookup("program")
+// returns the absolute path of the program being run.
+//
+// Install to /etc/polkit-1/rules.d/ (see scripts/install-polkit-rule.sh).
+
+polkit.addRule(function (action, subject) {
+    var program = action.lookup("program");
+    var is_helper =
+        program == "/usr/bin/cosmic-nightshift-helper" ||
+        program == "/usr/local/bin/cosmic-nightshift-helper";
+    if (
+        action.id == "org.freedesktop.policykit.exec" &&
+        is_helper &&
+        (subject.isInGroup("wheel") || subject.isInGroup("sudo"))
+    ) {
+        return polkit.Result.YES;
+    }
+});

@@ -1,0 +1,34 @@
+#!/usr/bin/make -f
+# SPDX-License-Identifier: MPL-2.0
+
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+# Keep cargo's caches inside the build tree so the build is self-contained.
+export CARGO_HOME = $(CURDIR)/debian/cargo_home
+
+DEB_DESTDIR = $(CURDIR)/debian/cosmic-nightshift
+
+%:
+	dh $@
+
+# Build the two shipped binaries in release mode. --locked enforces the
+# committed Cargo.lock. See PACKAGING.md for the vendoring needed to build
+# offline (libcosmic is a git dependency).
+override_dh_auto_build:
+	cargo build --release --locked \
+		-p nightshift-helper -p cosmic-nightshift
+
+override_dh_auto_test:
+	cargo test --release --locked -p nightshift-core
+
+override_dh_auto_install:
+	install -D -m0755 target/release/cosmic-nightshift-helper \
+		$(DEB_DESTDIR)/usr/bin/cosmic-nightshift-helper
+	install -D -m0755 target/release/cosmic-nightshift \
+		$(DEB_DESTDIR)/usr/bin/cosmic-nightshift
+	install -D -m0644 data/io.github.cosmic_nightshift.desktop \
+		$(DEB_DESTDIR)/usr/share/applications/io.github.cosmic_nightshift.desktop
+	install -D -m0644 polkit/49-cosmic-nightshift.rules \
+		$(DEB_DESTDIR)/usr/share/polkit-1/rules.d/49-cosmic-nightshift.rules
+
+override_dh_auto_clean:
+	rm -rf target debian/cargo_home

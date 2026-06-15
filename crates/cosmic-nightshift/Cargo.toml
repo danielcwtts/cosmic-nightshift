@@ -1,0 +1,18 @@
+# SPDX-License-Identifier: MPL-2.0
+[package]
+name = "cosmic-nightshift"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "cosmic-nightshift"
+path = "src/main.rs"
+
+[dependencies]
+nightshift-core.workspace = true
+chrono.workspace = true
+
+[dependencies.libcosmic]
+git = "https://github.com/pop-os/libcosmic.git"
+features = ["wgpu"]

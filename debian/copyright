@@ -1,0 +1,15 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: cosmic-nightshift
+Source: https://github.com/danielcwtts/cosmic-nightshift
+
+Files: *
+Copyright: 2026 Daniel Watts <danielcwtts@gmail.com>
+License: MPL-2.0
+
+License: MPL-2.0
+ This Source Code Form is subject to the terms of the Mozilla Public
+ License, v. 2.0. If a copy of the MPL was not distributed with this
+ file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ .
+ The full text of the MPL-2.0 is available in
+ /usr/share/common-licenses/MPL-2.0 on Debian/Ubuntu systems.

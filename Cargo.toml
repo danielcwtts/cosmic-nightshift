@@ -1,0 +1,19 @@
+# SPDX-License-Identifier: MPL-2.0
+[workspace]
+resolver = "2"
+members = [
+    "crates/nightshift-core",
+    "crates/nightshift-helper",
+    "crates/cosmic-nightshift",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MPL-2.0"
+
+[workspace.dependencies]
+nightshift-core = { path = "crates/nightshift-core" }
+drm = "0.11"
+libc = "0.2"
+chrono = "0.4"

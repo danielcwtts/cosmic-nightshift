@@ -1,0 +1,14 @@
+#!/bin/sh
+# SPDX-License-Identifier: MPL-2.0
+set -e
+
+if [ "$1" = "configure" ]; then
+    # Refresh the application database so the launcher entry appears.
+    if command -v update-desktop-database >/dev/null 2>&1; then
+        update-desktop-database -q /usr/share/applications || true
+    fi
+fi
+
+#DEBHELPER#
+
+exit 0

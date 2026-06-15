@@ -1,0 +1,7 @@
+cosmic-nightshift (0.1.0-1) noble; urgency=medium
+
+  * Initial packaging.
+    - Privileged DRM/VT gamma helper invoked via polkit.
+    - libcosmic GUI and systemd user scheduler.
+
+ -- Daniel Watts <danielcwtts@gmail.com>  Mon, 15 Jun 2026 02:01:50 +0000

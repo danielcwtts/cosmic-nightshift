@@ -1,0 +1,36 @@
+Source: cosmic-nightshift
+Section: x11
+Priority: optional
+Maintainer: Daniel Watts <danielcwtts@gmail.com>
+Build-Depends:
+ debhelper-compat (= 13),
+ cargo,
+ rustc,
+ pkg-config,
+ libdrm-dev,
+ libxkbcommon-dev,
+ libwayland-dev,
+ libfontconfig-dev,
+ libexpat1-dev
+Standards-Version: 4.7.0
+Rules-Requires-Root: no
+Homepage: https://github.com/danielcwtts/cosmic-nightshift
+
+Package: cosmic-nightshift
+Architecture: any
+Depends:
+ ${shlibs:Depends},
+ ${misc:Depends},
+ polkitd | policykit-1
+Description: Night light / red tint for the COSMIC desktop
+ A night-light utility for the COSMIC desktop (Pop!_OS) that warms the screen
+ color temperature on a schedule.
+ .
+ COSMIC's compositor does not yet expose a gamma-control Wayland protocol, so
+ this package writes the gamma ramp directly to the kernel's DRM/KMS layer. A
+ small privileged helper (run via polkit/pkexec) briefly switches virtual
+ terminals so the compositor releases the DRM master lock, applies the gamma
+ LUTs to every active display, and switches back; the tint then persists.
+ .
+ Ships a libcosmic GUI, a background scheduler (systemd user service), and the
+ polkit rule that lets desktop users apply the tint without a password prompt.

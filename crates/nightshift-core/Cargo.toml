@@ -1,0 +1,10 @@
+# SPDX-License-Identifier: MPL-2.0
+[package]
+name = "nightshift-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+drm.workspace = true
+libc.workspace = true

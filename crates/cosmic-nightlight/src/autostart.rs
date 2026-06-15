@@ -14,6 +14,12 @@ use std::path::PathBuf;
 
 use crate::config::APP_ID;
 
+/// App ids this binary has shipped under in the past. Their autostart entries
+/// must be cleaned up on disable (and before enable), otherwise an entry written
+/// by an older build keeps launching on login regardless of the toggle. See the
+/// Night Shift → Night Light rename.
+const LEGACY_APP_IDS: &[&str] = &["io.github.cosmic_nightshift"];
+
 /// File name of the autostart entry (matches the app id, as is conventional).
 fn entry_path() -> Option<PathBuf> {
     Some(autostart_dir()?.join(format!("{APP_ID}.desktop")))
@@ -37,9 +43,18 @@ fn exec_path() -> String {
         .unwrap_or_else(|| "cosmic-nightlight".to_string())
 }
 
-/// Whether the autostart entry currently exists on disk.
+/// Whether an autostart entry currently exists on disk — under the current app
+/// id or any legacy one, so the toggle reflects reality immediately after an
+/// upgrade (toggling either way then rewrites to the current app id).
 pub fn is_enabled() -> bool {
-    entry_path().is_some_and(|p| p.exists())
+    if entry_path().is_some_and(|p| p.exists()) {
+        return true;
+    }
+    autostart_dir().is_some_and(|dir| {
+        LEGACY_APP_IDS
+            .iter()
+            .any(|app_id| dir.join(format!("{app_id}.desktop")).exists())
+    })
 }
 
 /// Applies the desired autostart state, creating or removing the entry.
@@ -52,6 +67,9 @@ pub fn set(enabled: bool) -> io::Result<()> {
 }
 
 fn enable() -> io::Result<()> {
+    // Drop any entries from older app ids so we don't launch twice on login.
+    remove_legacy_entries();
+
     let path =
         entry_path().ok_or_else(|| io::Error::other("no XDG config directory for autostart"))?;
     if let Some(parent) = path.parent() {
@@ -74,12 +92,33 @@ fn enable() -> io::Result<()> {
 }
 
 fn disable() -> io::Result<()> {
+    remove_legacy_entries();
     if let Some(path) = entry_path() {
-        match fs::remove_file(&path) {
-            Ok(()) => {}
-            Err(err) if err.kind() == io::ErrorKind::NotFound => {}
-            Err(err) => return Err(err),
-        }
+        remove_if_present(&path)?;
     }
     Ok(())
+}
+
+/// Removes autostart entries written under any [`LEGACY_APP_IDS`], ignoring ones
+/// that aren't there. A failure to remove one is logged but not fatal, so the
+/// current-app-id entry is still handled.
+fn remove_legacy_entries() {
+    let Some(dir) = autostart_dir() else {
+        return;
+    };
+    for app_id in LEGACY_APP_IDS {
+        let path = dir.join(format!("{app_id}.desktop"));
+        if let Err(err) = remove_if_present(&path) {
+            eprintln!("cosmic-nightlight: failed to remove legacy autostart entry {path:?}: {err}");
+        }
+    }
+}
+
+/// Deletes `path`, treating "already gone" as success.
+fn remove_if_present(path: &PathBuf) -> io::Result<()> {
+    match fs::remove_file(path) {
+        Ok(()) => Ok(()),
+        Err(err) if err.kind() == io::ErrorKind::NotFound => Ok(()),
+        Err(err) => Err(err),
+    }
 }

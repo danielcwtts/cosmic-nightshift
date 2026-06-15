@@ -7,6 +7,17 @@ if [ "$1" = "configure" ]; then
     if command -v update-desktop-database >/dev/null 2>&1; then
         update-desktop-database -q /usr/share/applications || true
     fi
+
+    # Earlier versions auto-enabled the systemd user service, which then ran the
+    # daemon on every login regardless of the in-app "Start on login" toggle. The
+    # toggle (an XDG autostart entry) is now the single source of truth, so undo
+    # any prior global enablement so disabling the toggle actually takes effect.
+    rm -f /etc/systemd/user/graphical-session.target.wants/cosmic-nightlight.service
+
+    # Clean up the pre-rename "Night Shift" user service and its enablement, which
+    # a name-changed package upgrade leaves orphaned and still starting on login.
+    rm -f /etc/systemd/user/graphical-session.target.wants/cosmic-nightshift.service
+    rm -f /usr/lib/systemd/user/cosmic-nightshift.service
 fi
 
 #DEBHELPER#

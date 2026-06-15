@@ -1,3 +1,18 @@
+cosmic-nightlight (0.3.1-1) noble; urgency=medium
+
+  * Fix "Start on login" being ignored: the package auto-enabled the systemd
+    user service, which started the daemon on every login regardless of the
+    in-app toggle. The service is no longer auto-enabled (the toggle's XDG
+    autostart entry is now the single source of truth), and the postinst undoes
+    any prior enablement and removes the orphaned pre-rename "nightshift" unit.
+  * autostart toggle now also clears legacy ("nightshift") autostart entries and
+    reflects them in its state, so upgrades from the old name behave correctly.
+  * uninstall.sh now stops/disables the daemon, removes the autostart entry, and
+    resets the screen tint, so uninstalling no longer leaves the screen warm or a
+    daemon re-tinting on the next login.
+
+ -- Daniel Watts <danielcwtts@gmail.com>  Mon, 15 Jun 2026 16:00:00 +0000
+
 cosmic-nightlight (0.3.0-1) noble; urgency=medium
 
   * Rename the project from "Night Shift" to "Night Light" to avoid trademark

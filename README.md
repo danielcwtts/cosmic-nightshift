@@ -1,89 +1,80 @@
 <!-- SPDX-License-Identifier: MPL-2.0 -->
-# cosmic-nightlight
+# Night Light for COSMIC
 
-A night-light / red-tint utility for the **COSMIC** desktop (Pop!_OS). It warms
-your screen's color temperature on a schedule, working around the fact that
-COSMIC's compositor does not yet expose a color/gamma protocol.
+**Night Light** is an easy-to-use applet for the **COSMIC** desktop (Pop!_OS)
+that warms your screen's color temperature to cut blue light. It lives as an
+icon on your **panel or dock**: click it for a simple popup with an on/off
+toggle and a temperature slider, and open **Settings** for a schedule
+(sunset → sunrise), the night temperature, and start-on-login.
+
+It exists because COSMIC's compositor does not yet expose a color/gamma
+protocol, so the usual tools (`redshift`, `gammastep`, `wlsunset`) can't adjust
+the screen — see [How it works](#how-it-works).
 
 ## Install
 
-Requires a Rust toolchain and `libdrm` headers (`libdrm-dev`).
+The easy way — install the `.deb` from the COSMIC Store:
+
+1. Download the latest **`cosmic-nightlight_*.deb`** from the
+   [**Releases**](https://github.com/danielcwtts/cosmic-nightlight/releases)
+   page.
+2. Open the downloaded file with the **COSMIC Store** and click **Install**.
+   (Or from a terminal: `sudo apt install ./cosmic-nightlight_*.deb`.)
+3. Add the applet to your bar: **COSMIC Settings → Desktop → Panel** (or
+   **Dock**) **→ Configure applets → Add applet → Night Light**.
+
+That's it — click the Night Light icon to toggle the tint or open its settings.
+
+> Flatpak is **not** an option for this tool: the sandbox cannot grant the
+> root / DRM-master / VT-switch capabilities the workaround needs. That is also
+> why the `.deb` installs a small `pkexec` helper and a polkit rule (so the
+> tint can be applied without a password prompt for `wheel`/`sudo` members).
+
+### Build from source (for development)
+
+The `scripts/install.sh` / `scripts/uninstall.sh` helpers build and install
+locally from a checkout — handy for hacking on the app, and usable as an
+alternative to the `.deb`. They need a Rust toolchain and `libdrm` headers
+(`libdrm-dev`):
 
 ```sh
-# builds the root helper + installs it and the polkit rule
-./scripts/install.sh
-
-# also build & install the libcosmic GUI (slow: pulls libcosmic from git)
-./scripts/install.sh --gui
+./scripts/install.sh --gui     # build + install the helper, polkit rule, and GUI
+./scripts/uninstall.sh         # remove everything install.sh added
 ```
 
-This installs:
-- `/usr/local/bin/cosmic-nightlight-helper`
-- `/etc/polkit-1/rules.d/49-cosmic-nightlight.rules` — lets `wheel`/`sudo`
-  members run the helper via `pkexec` without a password prompt
-- with `--gui`: `/usr/local/bin/cosmic-nightlight` plus the applet and settings
-  desktop entries
+To build the `.deb` yourself, see [PACKAGING.md](PACKAGING.md).
 
-To remove everything again:
+## Using it
+
+**The applet.** The Night Light icon opens a popup with the on/off toggle, the
+temperature slider, and a **Night Light Settings…** button.
+
+**Settings.** The settings window covers start-on-login, schedule mode,
+sunrise/sunset hours, and the night temperature. Open it from the popup, from
+the **Night Light Settings** launcher entry, or with `cosmic-nightlight --settings`.
+
+Toggling the tint against the schedule sets a manual override that lasts until
+the next sunset/sunrise transition, after which automatic scheduling resumes.
+Settings live in `~/.config/cosmic/io.github.cosmic_nightlight/` and sync live
+across the applet, the settings window, and the background scheduler.
+
+**Start on login.** Enabling it in Settings runs the background scheduler at
+login (warm after sunset, neutral after sunrise) and re-applies your saved tint.
+
+<details>
+<summary>Advanced: drive the helper directly</summary>
+
+The privileged helper can be called by hand. Each call briefly flickers the
+screen:
 
 ```sh
-./scripts/uninstall.sh
+pkexec /usr/bin/cosmic-nightlight-helper --temp 3500            # warm tint
+pkexec /usr/bin/cosmic-nightlight-helper --temp 4000 --brightness 0.9
+pkexec /usr/bin/cosmic-nightlight-helper --off                 # reset
 ```
 
-For a proper system package (and getting it into the COSMIC Store as a
-"System" app), build the `.deb` instead — see [PACKAGING.md](PACKAGING.md).
-Flatpak is **not** an option for this tool: the sandbox cannot grant the
-root / DRM-master / VT-switch capabilities the workaround needs.
-
-## Usage
-
-### Panel applet (the normal way)
-
-`cosmic-nightlight` runs as a **COSMIC panel applet**. After installing the
-desktop file, add it from **COSMIC Settings → Panel** (or **Dock**) **→ Applets**.
-It puts an icon in the status bar; clicking it opens a popup with the on/off
-toggle and the temperature slider, plus a **Settings…** button.
-
-### Settings window
-
-The settings window (autostart, schedule mode, sunset/sunrise hours,
-temperature) opens from that button, from the **Night Light Settings** launcher
-entry, or directly:
-
-```sh
-cosmic-nightlight --settings
-```
-
-Flipping the tint on or off against the schedule sets a manual override that
-lasts until the next sunset/sunrise transition, after which automatic
-scheduling resumes. Settings are stored with `cosmic_config` under
-`~/.config/cosmic/io.github.cosmic_nightlight/` and shared live by the applet,
-the settings window, and the daemon — a change in one shows up in the others
-immediately.
-
-### Background scheduler
-
-Warm after sunset, neutral after sunrise. Toggling **Autostart** in the settings
-window writes an XDG autostart entry that launches `cosmic-nightlight --daemon`
-on login (and re-applies the saved tint). You can also run it under systemd:
-
-```sh
-mkdir -p ~/.config/systemd/user
-cp systemd/cosmic-nightlight.service ~/.config/systemd/user/
-systemctl --user daemon-reload
-systemctl --user enable --now cosmic-nightlight.service
-```
-
-### Command line (advanced)
-
-The privileged helper can be driven directly. Each call flickers the screen
-briefly:
-
-```sh
-pkexec /usr/local/bin/cosmic-nightlight-helper --temp 3500            # warm tint
-pkexec /usr/local/bin/cosmic-nightlight-helper --temp 4000 --brightness 0.9
-pkexec /usr/local/bin/cosmic-nightlight-helper --off                  # reset
-```
+(Use `/usr/local/bin/...` if you installed via `scripts/install.sh`.)
+</details>
 
 ## Known limitations
 

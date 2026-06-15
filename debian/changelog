@@ -1,4 +1,26 @@
-cosmic-nightshift (0.2.0-1) noble; urgency=medium
+cosmic-nightlight (0.3.0-1) noble; urgency=medium
+
+  * Rename the project from "Night Shift" to "Night Light" to avoid trademark
+    confusion. Crates, binaries, the app ID (now io.github.cosmic_nightlight),
+    desktop entries, the polkit rule, and the systemd unit are all renamed.
+    NOTE: the config directory moves to
+    ~/.config/cosmic/io.github.cosmic_nightlight/, so prior settings are not
+    carried over automatically.
+  * Add a manual on/off override that takes precedence over the schedule and
+    automatically clears at the next sunset/sunrise transition.
+  * Sync settings live between the applet, settings window, and daemon via a
+    cosmic_config file watcher.
+  * Harden the daemon: wait for the graphical session to be foreground before
+    touching DRM at login, and retry failed applies with backoff instead of
+    assuming success.
+  * Settings window: mirror the applet's on/off toggle and temperature, show a
+    schedule status line, honour the system 12/24-hour clock, and enforce a
+    minimum window size.
+  * Add scripts/uninstall.sh to remove installed components.
+
+ -- Daniel Watts <danielcwtts@gmail.com>  Mon, 15 Jun 2026 12:30:00 +0000
+
+cosmic-nightlight (0.2.0-1) noble; urgency=medium
 
   * Move the GUI into a COSMIC panel applet.
     - Status-bar icon with a popup for the on/off toggle and temperature
@@ -13,7 +35,7 @@ cosmic-nightshift (0.2.0-1) noble; urgency=medium
 
  -- Daniel Watts <danielcwtts@gmail.com>  Sun, 14 Jun 2026 23:11:12 -0500
 
-cosmic-nightshift (0.1.0-1) noble; urgency=medium
+cosmic-nightlight (0.1.0-1) noble; urgency=medium
 
   * Initial packaging.
     - Privileged DRM/VT gamma helper invoked via polkit.

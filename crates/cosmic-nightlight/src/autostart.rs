@@ -3,7 +3,7 @@
 //! XDG autostart integration.
 //!
 //! Toggling autostart writes (or removes) a desktop entry under
-//! `~/.config/autostart/`. The entry launches `cosmic-nightshift --daemon`, so
+//! `~/.config/autostart/`. The entry launches `cosmic-nightlight --daemon`, so
 //! on the next login the background scheduler starts and — because the daemon
 //! re-applies the saved tint on startup — the user's night-light state is
 //! restored automatically.
@@ -34,7 +34,7 @@ fn exec_path() -> String {
     std::env::current_exe()
         .ok()
         .and_then(|p| p.to_str().map(str::to_owned))
-        .unwrap_or_else(|| "cosmic-nightshift".to_string())
+        .unwrap_or_else(|| "cosmic-nightlight".to_string())
 }
 
 /// Whether the autostart entry currently exists on disk.
@@ -52,8 +52,8 @@ pub fn set(enabled: bool) -> io::Result<()> {
 }
 
 fn enable() -> io::Result<()> {
-    let path = entry_path()
-        .ok_or_else(|| io::Error::other("no XDG config directory for autostart"))?;
+    let path =
+        entry_path().ok_or_else(|| io::Error::other("no XDG config directory for autostart"))?;
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent)?;
     }
@@ -61,7 +61,7 @@ fn enable() -> io::Result<()> {
     let contents = format!(
         "[Desktop Entry]\n\
          Type=Application\n\
-         Name=Night Shift (daemon)\n\
+         Name=Night Light (daemon)\n\
          Comment=Apply the night-light tint on a schedule\n\
          Exec={exec} --daemon\n\
          Icon=weather-clear-night-symbolic\n\

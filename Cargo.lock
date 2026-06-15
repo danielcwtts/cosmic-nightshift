@@ -934,12 +934,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "cosmic-nightshift"
-version = "0.2.0"
+name = "cosmic-nightlight"
+version = "0.3.0"
 dependencies = [
  "chrono",
  "libcosmic",
- "nightshift-core",
+ "nightlight-core",
 ]
 
 [[package]]
@@ -3045,18 +3045,18 @@ dependencies = [
 ]
 
 [[package]]
-name = "nightshift-core"
-version = "0.2.0"
+name = "nightlight-core"
+version = "0.3.0"
 dependencies = [
  "drm",
  "libc",
 ]
 
 [[package]]
-name = "nightshift-helper"
-version = "0.2.0"
+name = "nightlight-helper"
+version = "0.3.0"
 dependencies = [
- "nightshift-core",
+ "nightlight-core",
 ]
 
 [[package]]

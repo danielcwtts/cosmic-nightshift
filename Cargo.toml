@@ -2,18 +2,18 @@
 [workspace]
 resolver = "2"
 members = [
-    "crates/nightshift-core",
-    "crates/nightshift-helper",
-    "crates/cosmic-nightshift",
+    "crates/nightlight-core",
+    "crates/nightlight-helper",
+    "crates/cosmic-nightlight",
 ]
 
 [workspace.package]
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 license = "MPL-2.0"
 
 [workspace.dependencies]
-nightshift-core = { path = "crates/nightshift-core" }
+nightlight-core = { path = "crates/nightlight-core" }
 drm = "0.11"
 libc = "0.2"
 chrono = "0.4"

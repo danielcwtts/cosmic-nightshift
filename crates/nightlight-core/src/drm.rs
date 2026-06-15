@@ -120,7 +120,7 @@ pub fn apply_all(kelvin: u32, brightness: f64) -> io::Result<usize> {
     for path in paths {
         match apply_card(&path, kelvin, brightness) {
             Ok(n) => total += n,
-            Err(err) => eprintln!("nightshift: {}: {err}", path.display()),
+            Err(err) => eprintln!("nightlight: {}: {err}", path.display()),
         }
     }
     Ok(total)

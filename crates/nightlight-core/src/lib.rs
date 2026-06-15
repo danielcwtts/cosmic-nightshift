@@ -13,7 +13,7 @@
 //! the gamma write; the values then persist after switching back.
 //!
 //! All of this requires root, so the intended entry point is the
-//! `nightshift-helper` binary invoked via `pkexec`.
+//! `nightlight-helper` binary invoked via `pkexec`.
 
 use std::io;
 
@@ -36,15 +36,18 @@ pub struct Applied {
 /// Performs the VT bounce internally, so the caller must be running as root.
 /// Passing [`NEUTRAL_KELVIN`] with full brightness resets displays to an
 /// identity ramp (i.e. turns the tint off).
-pub fn apply(kelvin: u32, brightness: f64) -> io::Result<Applied> {
+///
+/// `session_vt` is the caller's graphical-session VT (`XDG_VTNR`); see
+/// [`vt::with_master_window`] for how it guards and restores the VT bounce.
+pub fn apply(kelvin: u32, brightness: f64, session_vt: Option<i32>) -> io::Result<Applied> {
     let kelvin = kelvin.clamp(MIN_KELVIN, MAX_KELVIN);
-    let crtcs = vt::with_master_window(|| drm::apply_all(kelvin, brightness))??;
+    let crtcs = vt::with_master_window(session_vt, || drm::apply_all(kelvin, brightness))??;
     Ok(Applied { crtcs })
 }
 
 /// Resets all displays to a neutral (untinted) ramp.
-pub fn reset() -> io::Result<Applied> {
-    apply(NEUTRAL_KELVIN, 1.0)
+pub fn reset(session_vt: Option<i32>) -> io::Result<Applied> {
+    apply(NEUTRAL_KELVIN, 1.0, session_vt)
 }
 
 /// Returns `true` if the current process is running as root, which every

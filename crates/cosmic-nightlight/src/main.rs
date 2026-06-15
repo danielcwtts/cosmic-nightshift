@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 
-//! `cosmic-nightshift` is a single binary with three run modes, selected by
+//! `cosmic-nightlight` is a single binary with three run modes, selected by
 //! command-line flag:
 //!
 //! - (no args)    → run as a COSMIC panel applet (the status-bar icon + popup)

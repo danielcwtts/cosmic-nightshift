@@ -1,5 +1,5 @@
 <!-- SPDX-License-Identifier: MPL-2.0 -->
-# Packaging cosmic-nightshift as a `.deb`
+# Packaging cosmic-nightlight as a `.deb`
 
 This tool needs root (DRM master + VT switching), so its natural distribution
 channel is a **native `.deb`**, not a Flatpak — a Flatpak sandbox cannot get
@@ -8,15 +8,15 @@ Store as the "System" version of the app once it's in a repo (a PPA or the
 Pop!_OS repos).
 
 The `debian/` directory here produces a single binary package,
-`cosmic-nightshift`, that installs:
+`cosmic-nightlight`, that installs:
 
 | Path | What |
 | --- | --- |
-| `/usr/bin/cosmic-nightshift-helper` | privileged DRM/VT helper (run via pkexec) |
-| `/usr/bin/cosmic-nightshift` | libcosmic GUI + `--daemon` scheduler |
-| `/usr/share/polkit-1/rules.d/49-cosmic-nightshift.rules` | passwordless pkexec for `wheel`/`sudo` |
-| `/usr/share/applications/io.github.cosmic_nightshift.desktop` | launcher entry |
-| `/usr/lib/systemd/user/cosmic-nightshift.service` | per-user scheduler unit |
+| `/usr/bin/cosmic-nightlight-helper` | privileged DRM/VT helper (run via pkexec) |
+| `/usr/bin/cosmic-nightlight` | libcosmic GUI + `--daemon` scheduler |
+| `/usr/share/polkit-1/rules.d/49-cosmic-nightlight.rules` | passwordless pkexec for `wheel`/`sudo` |
+| `/usr/share/applications/io.github.cosmic_nightlight.desktop` | launcher entry |
+| `/usr/lib/systemd/user/cosmic-nightlight.service` | per-user scheduler unit |
 
 ## Build dependencies
 
@@ -35,8 +35,8 @@ libcosmic is a **git dependency**, so cargo must fetch it. On your own machine
 
 ```sh
 dpkg-buildpackage -b -us -uc
-# -> ../cosmic-nightshift_0.1.0-1_amd64.deb
-sudo apt install ../cosmic-nightshift_0.1.0-1_amd64.deb
+# -> ../cosmic-nightlight_0.1.0-1_amd64.deb
+sudo apt install ../cosmic-nightlight_0.1.0-1_amd64.deb
 ```
 
 ## Automated builds & releases (GitHub Actions)
@@ -69,7 +69,7 @@ git tag v0.2.0
 git push --tags
 ```
 
-The workflow then builds `cosmic-nightshift_0.2.0-1_amd64.deb` and attaches it to
+The workflow then builds `cosmic-nightlight_0.2.0-1_amd64.deb` and attaches it to
 a `v0.2.0` Release with auto-generated notes.
 
 ## Clean-room / offline build (PPA, sbuild, Launchpad)
@@ -98,7 +98,7 @@ The Store reads the system's apt repos (Ubuntu, Pop!_OS, and any you add) plus
 Flathub. To make this installable there as a System package:
 
 1. Host the `.deb` in an **apt repository** — a Launchpad PPA is the easiest
-   (`debuild -S` then `dput ppa:you/cosmic-nightshift`), or self-host with
+   (`debuild -S` then `dput ppa:you/cosmic-nightlight`), or self-host with
    `reprepro`.
 2. Users add the PPA (`add-apt-repository`); the package then appears in the
    COSMIC Store and `apt`.

@@ -84,16 +84,40 @@ impl Drop for VtRestore {
 /// Switches to a spare VT (making the compositor drop DRM master), runs
 /// `f` while master is available, then switches back to the original VT.
 ///
+/// `session_vt` is the caller's known graphical-session VT (from `XDG_VTNR`):
+/// - `Some(n)`: we **guard** against bouncing at the wrong moment — if the
+///   foreground VT isn't `n` (e.g. we're mid login/greeter handoff), we refuse
+///   to switch and return an error rather than risk parking the seat on the
+///   spare TTY. We also restore to `n` directly, never to a stale snapshot.
+/// - `None`: manual/CLI use — fall back to snapshotting whatever VT is
+///   foreground and restoring to it, with no guard.
+///
 /// Requires `CAP_SYS_TTY_CONFIG` (i.e. root) to open `/dev/tty0` and issue
 /// the VT ioctls.
-pub fn with_master_window<T>(f: impl FnOnce() -> T) -> io::Result<T> {
+pub fn with_master_window<T>(
+    session_vt: Option<libc::c_int>,
+    f: impl FnOnce() -> T,
+) -> io::Result<T> {
     let tty = OpenOptions::new()
         .read(true)
         .write(true)
         .open("/dev/tty0")?;
     let fd = tty.as_raw_fd();
 
-    let original = current_vt(fd)?;
+    let active = current_vt(fd)?;
+    let original = match session_vt {
+        Some(vt) => {
+            // Only bounce when the graphical session is actually foreground;
+            // otherwise switching VTs could strand the user on the spare TTY.
+            if active != vt {
+                return Err(io::Error::other(format!(
+                    "active VT is {active}, not the session VT {vt}; skipping VT bounce"
+                )));
+            }
+            vt
+        }
+        None => active,
+    };
     let spare = query_free_vt(fd)?;
 
     activate(fd, spare)?;

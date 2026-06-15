@@ -1,15 +1,15 @@
 # SPDX-License-Identifier: MPL-2.0
-# Installed to /usr/lib/systemd/user/cosmic-nightshift.service by
+# Installed to /usr/lib/systemd/user/cosmic-nightlight.service by
 # dh_installsystemduser. Enable per-user with:
-#   systemctl --user enable --now cosmic-nightshift.service
+#   systemctl --user enable --now cosmic-nightlight.service
 
 [Unit]
-Description=COSMIC Night Shift background scheduler
+Description=COSMIC Night Light background scheduler
 After=graphical-session.target
 PartOf=graphical-session.target
 
 [Service]
-ExecStart=/usr/bin/cosmic-nightshift --daemon
+ExecStart=/usr/bin/cosmic-nightlight --daemon
 Restart=on-failure
 RestartSec=5
 

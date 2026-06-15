@@ -1,26 +1,33 @@
 // SPDX-License-Identifier: MPL-2.0
 
-//! Privileged backend for cosmic-nightshift.
+//! Privileged backend for cosmic-nightlight.
 //!
 //! This is the only part of the project that runs as root (via `pkexec`).
 //! It keeps a deliberately tiny surface: parse a target temperature and
-//! brightness, then ask `nightshift-core` to write the gamma LUTs to DRM,
+//! brightness, then ask `nightlight-core` to write the gamma LUTs to DRM,
 //! performing the VT bounce required under COSMIC.
 //!
 //! Usage:
-//!   cosmic-nightshift-helper --temp <kelvin> [--brightness <0.0-1.0>]
-//!   cosmic-nightshift-helper --off          (reset to a neutral ramp)
+//!   cosmic-nightlight-helper --temp <kelvin> [--brightness <0.0-1.0>] [--session-vt <n>]
+//!   cosmic-nightlight-helper --off          (reset to a neutral ramp)
+//!
+//! `--session-vt` is the caller's graphical-session VT (from `XDG_VTNR`, which
+//! `pkexec` strips from the environment). When given, the VT bounce only runs
+//! if that VT is foreground and always switches back to it; without it the
+//! helper falls back to snapshotting the foreground VT (manual CLI use).
 
 use std::process::ExitCode;
 
 struct Args {
     kelvin: u32,
     brightness: f64,
+    session_vt: Option<i32>,
 }
 
 fn parse_args() -> Result<Args, String> {
     let mut kelvin: Option<u32> = None;
     let mut brightness: f64 = 1.0;
+    let mut session_vt: Option<i32> = None;
     let mut off = false;
 
     let mut args = std::env::args().skip(1);
@@ -35,6 +42,10 @@ fn parse_args() -> Result<Args, String> {
                 let v = args.next().ok_or("--brightness requires a value")?;
                 brightness = v.parse().map_err(|_| format!("invalid brightness: {v}"))?;
             }
+            "--session-vt" => {
+                let v = args.next().ok_or("--session-vt requires a value")?;
+                session_vt = Some(v.parse().map_err(|_| format!("invalid session VT: {v}"))?);
+            }
             "--help" | "-h" => {
                 return Err("help".to_string());
             }
@@ -43,21 +54,27 @@ fn parse_args() -> Result<Args, String> {
     }
 
     let kelvin = if off {
-        nightshift_core::NEUTRAL_KELVIN
+        nightlight_core::NEUTRAL_KELVIN
     } else {
         kelvin.ok_or("missing required --temp <kelvin> (or use --off)")?
     };
 
     if !(0.0..=1.0).contains(&brightness) {
-        return Err(format!("brightness must be between 0.0 and 1.0 (got {brightness})"));
+        return Err(format!(
+            "brightness must be between 0.0 and 1.0 (got {brightness})"
+        ));
     }
 
-    Ok(Args { kelvin, brightness })
+    Ok(Args {
+        kelvin,
+        brightness,
+        session_vt,
+    })
 }
 
 fn usage() {
     eprintln!(
-        "usage: cosmic-nightshift-helper --temp <kelvin> [--brightness <0.0-1.0>]\n       cosmic-nightshift-helper --off"
+        "usage: cosmic-nightlight-helper --temp <kelvin> [--brightness <0.0-1.0>] [--session-vt <n>]\n       cosmic-nightlight-helper --off"
     );
 }
 
@@ -66,38 +83,42 @@ fn main() -> ExitCode {
         Ok(args) => args,
         Err(msg) => {
             if msg != "help" {
-                eprintln!("cosmic-nightshift-helper: {msg}");
+                eprintln!("cosmic-nightlight-helper: {msg}");
             }
             usage();
             return ExitCode::FAILURE;
         }
     };
 
-    if !nightshift_core::is_root() {
+    if !nightlight_core::is_root() {
         eprintln!(
-            "cosmic-nightshift-helper: must run as root (it switches VTs and grabs DRM master).\n\
+            "cosmic-nightlight-helper: must run as root (it switches VTs and grabs DRM master).\n\
              Invoke it via pkexec, not directly."
         );
         return ExitCode::FAILURE;
     }
 
-    match nightshift_core::apply(args.kelvin, args.brightness) {
+    match nightlight_core::apply(args.kelvin, args.brightness, args.session_vt) {
         Ok(applied) => {
             println!(
-                "cosmic-nightshift-helper: applied {}K @ {:.0}% to {} CRTC(s)",
+                "cosmic-nightlight-helper: applied {}K @ {:.0}% to {} CRTC(s)",
                 args.kelvin,
                 args.brightness * 100.0,
                 applied.crtcs
             );
             if applied.crtcs == 0 {
+                // Treat "nothing updated" as a failure so a caller that retries
+                // (the daemon) tries again — at login the displays may not be
+                // up yet. Exit non-zero rather than reporting a false success.
                 eprintln!(
-                    "cosmic-nightshift-helper: warning: no CRTCs were updated (no active displays with gamma support?)"
+                    "cosmic-nightlight-helper: no CRTCs were updated (no active displays with gamma support yet?)"
                 );
+                return ExitCode::FAILURE;
             }
             ExitCode::SUCCESS
         }
         Err(err) => {
-            eprintln!("cosmic-nightshift-helper: failed to apply gamma: {err}");
+            eprintln!("cosmic-nightlight-helper: failed to apply gamma: {err}");
             ExitCode::FAILURE
         }
     }

@@ -1,6 +1,6 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: cosmic-nightshift
-Source: https://github.com/danielcwtts/cosmic-nightshift
+Upstream-Name: cosmic-nightlight
+Source: https://github.com/danielcwtts/cosmic-nightlight
 
 Files: *
 Copyright: 2026 Daniel Watts <danielcwtts@gmail.com>

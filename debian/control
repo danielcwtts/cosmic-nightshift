@@ -1,4 +1,4 @@
-Source: cosmic-nightshift
+Source: cosmic-nightlight
 Section: x11
 Priority: optional
 Maintainer: Daniel Watts <danielcwtts@gmail.com>
@@ -14,9 +14,9 @@ Build-Depends:
  libexpat1-dev
 Standards-Version: 4.7.0
 Rules-Requires-Root: no
-Homepage: https://github.com/danielcwtts/cosmic-nightshift
+Homepage: https://github.com/danielcwtts/cosmic-nightlight
 
-Package: cosmic-nightshift
+Package: cosmic-nightlight
 Architecture: any
 Depends:
  ${shlibs:Depends},

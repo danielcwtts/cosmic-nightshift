@@ -44,6 +44,9 @@ if [[ "$build_gui" -eq 1 ]]; then
     sudo install -o root -g root -m 0644 \
         "$repo_root/data/io.github.cosmic_nightshift.desktop" \
         /usr/share/applications/io.github.cosmic_nightshift.desktop
+    sudo install -o root -g root -m 0644 \
+        "$repo_root/data/io.github.cosmic_nightshift.settings.desktop" \
+        /usr/share/applications/io.github.cosmic_nightshift.settings.desktop
     sudo update-desktop-database /usr/share/applications 2>/dev/null || true
 fi
 
@@ -54,8 +57,10 @@ echo "  /etc/polkit-1/rules.d/49-cosmic-nightshift.rules"
 if [[ "$build_gui" -eq 1 ]]; then
     echo "  /usr/local/bin/cosmic-nightshift"
     echo "  /usr/share/applications/io.github.cosmic_nightshift.desktop"
+    echo "  /usr/share/applications/io.github.cosmic_nightshift.settings.desktop"
     echo
-    echo 'Search "Night Shift" in the COSMIC launcher to open the GUI.'
+    echo 'Add "Night Shift" to your panel via COSMIC Settings > Panel/Dock > Applets.'
+    echo 'Open "Night Shift Settings" from the launcher to change schedule/autostart.'
 fi
 echo
 echo "Test it (will briefly flip VTs and warm the screen):"

@@ -38,7 +38,7 @@ stays tiny and independent of the heavy GUI:
 | --- | --- | --- |
 | [`nightshift-core`](crates/nightshift-core) | library | Gamma math ([`gamma.rs`](crates/nightshift-core/src/gamma.rs)), DRM apply ([`drm.rs`](crates/nightshift-core/src/drm.rs)), VT bounce ([`vt.rs`](crates/nightshift-core/src/vt.rs)) |
 | [`nightshift-helper`](crates/nightshift-helper) | **root** (via `pkexec`) | Thin CLI: parse `--temp`/`--brightness`, call core |
-| [`cosmic-nightshift`](crates/cosmic-nightshift) | your user | libcosmic GUI + `--daemon` scheduler; shells out to the helper |
+| [`cosmic-nightshift`](crates/cosmic-nightshift) | your user | libcosmic panel applet + `--settings` window + `--daemon` scheduler; shells out to the helper |
 
 Flow on a tint change:
 
@@ -87,7 +87,29 @@ pkexec /usr/local/bin/cosmic-nightshift-helper --temp 4000 --brightness 0.9
 pkexec /usr/local/bin/cosmic-nightshift-helper --off                  # reset
 ```
 
-Background scheduler (warm after sunset, neutral after sunrise):
+Panel applet (the normal way to use it):
+
+`cosmic-nightshift` runs as a **COSMIC panel applet**. After installing the
+desktop file, add it from **COSMIC Settings → Panel** (or **Dock**) **→ Applets**.
+It puts an icon in the status bar; clicking it opens a popup with the on/off
+toggle and the temperature slider, plus a **Settings…** button.
+
+The settings window (autostart, schedule mode, sunset/sunrise hours, night
+temperature) opens from that button, from the **Night Shift Settings** launcher
+entry, or directly:
+
+```sh
+cosmic-nightshift --settings
+```
+
+Settings are stored with `cosmic_config` under
+`~/.config/cosmic/io.github.cosmic_nightshift/` and shared by the applet, the
+settings window, and the daemon.
+
+Background scheduler (warm after sunset, neutral after sunrise). Toggling
+**Autostart** in the settings window writes an XDG autostart entry that launches
+`cosmic-nightshift --daemon` on login (and re-applies the saved tint). You can
+also run it under systemd instead:
 
 ```sh
 mkdir -p ~/.config/systemd/user
@@ -95,8 +117,6 @@ cp systemd/cosmic-nightshift.service ~/.config/systemd/user/
 systemctl --user daemon-reload
 systemctl --user enable --now cosmic-nightshift.service
 ```
-
-GUI: run `cosmic-nightshift` (toggle + temperature slider).
 
 ## Known limitations
 

@@ -1,11 +1,16 @@
 // SPDX-License-Identifier: MPL-2.0
 
-//! Background daemon mode.
+//! Background daemon mode (`cosmic-nightshift --daemon`).
 //!
-//! When the application is launched with `--daemon`, no GUI is shown.
-//! Instead this module runs an indefinite loop that checks the current
-//! local time against a sunset/sunrise schedule and applies (or clears)
-//! the night-light tint via the backend whenever the boundary is crossed.
+//! Runs an indefinite loop that reads the shared [`config`] every minute and
+//! applies (or clears) the night tint through the backend whenever the desired
+//! state changes. On startup it applies the saved state immediately, so a
+//! daemon launched at login restores the user's tint right away.
+//!
+//! Two schedule modes:
+//! - **Manual**: the tint follows the on/off toggle only.
+//! - **Sunset to Sunrise**: the tint is on (when enabled) between the
+//!   configured sunset and sunrise hours.
 
 use std::thread;
 use std::time::Duration;
@@ -13,47 +18,56 @@ use std::time::Duration;
 use chrono::{Local, Timelike};
 
 use crate::backend;
-
-/// Color temperature applied while it's considered "night".
-const NIGHT_TEMPERATURE: u32 = 3500;
-
-/// Brightness used for the night tint (`0.0..=1.0`).
-const NIGHT_BRIGHTNESS: f32 = 1.0;
-
-/// Placeholder sunrise/sunset hours (local time, 24h clock).
-///
-/// A real implementation should compute these from the user's location
-/// (e.g. via geoclue or an astronomical calculation crate) rather than
-/// using fixed hours.
-const SUNRISE_HOUR: u32 = 6;
-const SUNSET_HOUR: u32 = 18;
+use crate::config::{self, Schedule};
 
 const POLL_INTERVAL: Duration = Duration::from_secs(60);
 
-/// Runs the daemon loop forever, applying the night tint after sunset and
-/// clearing it after sunrise, but only when the boundary is actually
-/// crossed (so we don't trigger a VT bounce every poll).
+/// Runs the daemon loop forever. Applies a change only when the desired tint
+/// actually differs from what's already applied, so we don't trigger a VT
+/// bounce on every poll.
 pub fn run() {
     println!("cosmic-nightshift: running in daemon mode");
 
-    let mut current_is_night: Option<bool> = None;
+    let handler = config::handler();
+    // `None` = nothing applied yet (forces the first computed state to apply).
+    let mut applied: Option<Option<u32>> = None;
 
     loop {
-        let hour = Local::now().hour();
-        let is_night = hour < SUNRISE_HOUR || hour >= SUNSET_HOUR;
+        let settings = config::Settings::load_from(&handler);
+        let desired = desired_temperature(&settings);
 
-        if current_is_night != Some(is_night) {
-            if is_night {
-                println!("cosmic-nightshift: now night -> applying {NIGHT_TEMPERATURE}K");
-                backend::apply_color_temperature(NIGHT_TEMPERATURE, NIGHT_BRIGHTNESS);
-            } else {
-                println!("cosmic-nightshift: now day -> clearing tint");
-                backend::reset();
+        if applied != Some(desired) {
+            match desired {
+                Some(kelvin) => {
+                    println!("cosmic-nightshift: applying {kelvin}K");
+                    backend::apply_color_temperature(kelvin, settings.brightness as f32);
+                }
+                None => {
+                    println!("cosmic-nightshift: clearing tint");
+                    backend::reset();
+                }
             }
-
-            current_is_night = Some(is_night);
+            applied = Some(desired);
         }
 
         thread::sleep(POLL_INTERVAL);
     }
+}
+
+/// The tint that should currently be applied: `Some(kelvin)` for a warm tint,
+/// or `None` for a neutral screen.
+fn desired_temperature(settings: &config::Settings) -> Option<u32> {
+    match settings.schedule {
+        Schedule::Manual => settings.enabled.then_some(settings.temperature),
+        Schedule::SunsetToSunrise => {
+            let night = is_night(settings.sunrise_hour, settings.sunset_hour);
+            (settings.enabled && night).then_some(settings.temperature)
+        }
+    }
+}
+
+/// Whether the current local hour is within the night window.
+fn is_night(sunrise_hour: u32, sunset_hour: u32) -> bool {
+    let hour = Local::now().hour();
+    hour < sunrise_hour || hour >= sunset_hour
 }

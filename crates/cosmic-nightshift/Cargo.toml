@@ -15,4 +15,6 @@ chrono.workspace = true
 
 [dependencies.libcosmic]
 git = "https://github.com/pop-os/libcosmic.git"
-features = ["wgpu"]
+# `applet` adds the panel-applet support (status-bar icon + popup); `wgpu` keeps
+# GPU rendering for the settings window.
+features = ["applet", "wgpu"]

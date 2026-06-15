@@ -10,3 +10,8 @@ Categories=Utility;Settings;DesktopSettings;
 Keywords=night;light;shift;redshift;gamma;color;temperature;blue;warm;
 StartupNotify=true
 StartupWMClass=io.github.cosmic_nightshift
+# Marks this as a COSMIC panel applet so it appears in the panel/dock applet
+# picker. NoDisplay keeps it out of the regular app launcher (launching the
+# applet outside the panel has no anchor); use the Settings entry instead.
+X-CosmicApplet=true
+NoDisplay=true

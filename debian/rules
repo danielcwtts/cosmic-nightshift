@@ -27,6 +27,8 @@ override_dh_auto_install:
 		$(DEB_DESTDIR)/usr/bin/cosmic-nightshift
 	install -D -m0644 data/io.github.cosmic_nightshift.desktop \
 		$(DEB_DESTDIR)/usr/share/applications/io.github.cosmic_nightshift.desktop
+	install -D -m0644 data/io.github.cosmic_nightshift.settings.desktop \
+		$(DEB_DESTDIR)/usr/share/applications/io.github.cosmic_nightshift.settings.desktop
 	install -D -m0644 polkit/49-cosmic-nightshift.rules \
 		$(DEB_DESTDIR)/usr/share/polkit-1/rules.d/49-cosmic-nightshift.rules
 

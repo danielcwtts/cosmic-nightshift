@@ -1,3 +1,18 @@
+cosmic-nightshift (0.2.0-1) noble; urgency=medium
+
+  * Move the GUI into a COSMIC panel applet.
+    - Status-bar icon with a popup for the on/off toggle and temperature
+      slider.
+    - New `--settings` window for autostart, schedule mode, sunset/sunrise
+      hours, and night temperature.
+    - Settings are now shared via cosmic_config across the applet, settings
+      window, and daemon.
+    - Autostart toggle writes an XDG autostart entry that runs the daemon
+      and re-applies the saved tint on login.
+    - Settings window content now scrolls when the window is shrunk.
+
+ -- Daniel Watts <danielcwtts@gmail.com>  Sun, 14 Jun 2026 23:11:12 -0500
+
 cosmic-nightshift (0.1.0-1) noble; urgency=medium
 
   * Initial packaging.

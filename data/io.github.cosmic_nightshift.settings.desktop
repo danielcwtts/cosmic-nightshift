@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Night Shift Settings
+GenericName=Night Light Settings
+Comment=Configure autostart, schedule, and color temperature
+Exec=cosmic-nightshift --settings
+Icon=weather-clear-night-symbolic
+Terminal=false
+Categories=Utility;Settings;DesktopSettings;
+Keywords=night;light;shift;redshift;gamma;color;temperature;blue;warm;schedule;autostart;
+StartupNotify=true
+StartupWMClass=io.github.cosmic_nightshift

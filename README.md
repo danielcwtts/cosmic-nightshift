@@ -4,8 +4,10 @@
 **Night Light** is an easy-to-use applet for the **COSMIC** desktop (Pop!_OS)
 that warms your screen's color temperature to cut blue light. It lives as an
 icon on your **panel or dock**: click it for a simple popup with an on/off
-toggle and a temperature slider, and open **Settings** for a schedule
-(sunset → sunrise), the night temperature, and start-on-login.
+toggle and a temperature slider, and open **Settings** for a custom schedule
+(warm between the hours you choose), the night temperature, and start-on-login.
+It's built entirely with native COSMIC/libcosmic widgets, so it looks and
+behaves like a first-party part of the desktop rather than a bolted-on tool.
 
 It exists because COSMIC's compositor does not yet expose a color/gamma
 protocol, so the usual tools (`redshift`, `gammastep`, `wlsunset`) can't adjust
@@ -82,17 +84,19 @@ To build the `.deb` yourself, see [PACKAGING.md](PACKAGING.md).
 **The applet.** The Night Light icon opens a popup with the on/off toggle, the
 temperature slider, and a **Night Light Settings…** button.
 
-**Settings.** The settings window covers start-on-login, schedule mode,
-sunrise/sunset hours, and the night temperature. Open it from the popup, from
-the **Night Light Settings** launcher entry, or with `cosmic-nightlight --settings`.
+**Settings.** The settings window covers start-on-login, the schedule
+(**Off**, or a **Custom Schedule** with **From**/**To** hours), and the night
+temperature. Open it from the popup, from the **Night Light Settings** launcher
+entry, or with `cosmic-nightlight --settings`.
 
 Toggling the tint against the schedule sets a manual override that lasts until
-the next sunset/sunrise transition, after which automatic scheduling resumes.
+the next scheduled transition, after which automatic scheduling resumes.
 Settings live in `~/.config/cosmic/io.github.cosmic_nightlight/` and sync live
 across the applet, the settings window, and the background scheduler.
 
 **Start on login.** Enabling it in Settings runs the background scheduler at
-login (warm after sunset, neutral after sunrise) and re-applies your saved tint.
+login, which applies or clears the tint to match your schedule and re-applies
+your saved settings.
 
 <details>
 <summary>Advanced: drive the helper directly</summary>
@@ -115,9 +119,9 @@ pkexec /usr/bin/cosmic-nightlight-helper --off                 # reset
 - **A modeset can clear the tint** — resolution/monitor-hotplug/DPMS-wake events
   make the compositor reprogram the CRTC, dropping the LUT. Re-apply (the daemon
   re-applies on the next schedule boundary).
-- The sunset/sunrise schedule is currently fixed hours (06:00/18:00); wiring it
-  to your location (geoclio / an astronomical calc) is a clear next step — see
-  the TODO in [`daemon.rs`](crates/cosmic-nightlight/src/daemon.rs).
+- The schedule uses fixed clock hours you pick (**From**/**To**, defaulting to
+  18:00 → 06:00), not your location's real sunset/sunrise. Tying it to your
+  location (geoclue / an astronomical calc) is a clear next step.
 - Requires `pkexec`/polkit and membership in `wheel` or `sudo`.
 
 ---
